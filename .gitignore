@@ -1,0 +1,9 @@
+# MySQL data
+database/
+mysql/
+
+*.sock
+
+*.log
+
+*/data/

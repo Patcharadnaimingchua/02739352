@@ -68,8 +68,39 @@ docker network create wordpress
 docker network ls
 
 
-docker run --name mysql --network wordpress -e MYSQL_ROOT_PASSWORD=1111 -e MYSQL_DATABASE=wordpress_db -e MYSQL_USER=wordpress -e MYSQL_PASSWORD=wordpress -d mysql:5.7
+docker run --name mysql --network wordpress -e MYSQL_ROOT_PASSWORD=1111 -e MYSQL_DATABASE=wordpress_db -e MYSQL_USER=wordpress -e MYSQL_PASSWORD=wordpress -d mysql:8.0
 docker run --name pma --network wordpress -p 8888:80 -e PMA_ARBITRARY=1 -d phpmyadmin/phpmyadmin
 docker run -d --name wordpress --network wordpress -p 888:80 -e WORDPRESS_DB_HOST=mysql -e WORDPRESS_DB_USER=wordpress -e WORDPRESS_DB_PASSWORD=wordpress -e WORDPRESS_DB_NAME=wordpress_db wordpress
 
-Join network
+แบบ 2 Volume
+//ใช้คำสั่งนี้เพื่อตรวจสอบรายการ Volume ทั้งหมดที่มีอยู่ในระบบของคุณ
+docker volume ls
+
+//ใช้คำสั่งนี้เพื่อสร้าง Volume ใหม่ที่ชื่อว่า "wp_volume" ซึ่งจะใช้ในการเก็บข้อมูลของ WordPress ของคุณ
+docker volume create wp_volume 
+
+//ใช้คำสั่งนี้เพื่อลบ Volume ที่คุณไม่ต้องการ โดยแทนที่ <volume_name> ด้วยชื่อของ Volume ที่คุณต้องการลบ
+docker volume create mysql_volume
+
+//ใช้คำสั่งนี้เพื่อลบ Volume ที่คุณไม่ต้องการ โดยแทนที่ <volume_name> ด้วยชื่อของ Volume ที่คุณต้องการลบ
+docker volume rm wp_volume mysql_volume
+
+//ใช้คำสั่งนี้เพื่อตรวจสอบรายละเอียดของคอนเทนเนอร์ที่ชื่อว่า "wordpress" ซึ่งจะแสดงข้อมูลต่าง ๆ เช่น สถานะของคอนเทนเนอร์, พอร์ตที่เปิดใช้งาน, และการเชื่อมต่อเครือข่าย
+docker container inspect wordpress
+
+สร้างเอง
+docker volume create wp_volume
+docker network create wordpress02
+docker volume create mysql_volume
+
+docker run -d --name mysql02 --network wordpress02 -v mysql_volume:/var/lib/mysql -e MYSQL_ROOT_PASSWORD=1111 -e MYSQL_DATABASE=wordpress02_db -e MYSQL_USER=wordpress -e MYSQL_PASSWORD=wordpress  mysql:8.0
+docker run -d --name wordpress02 --network wordpress02 -v wp_volume:/var/www/html -e WORDPRESS_DB_HOST=mysql02 -e WORDPRESS_DB_USER=wordpress -e WORDPRESS_DB_PASSWORD=wordpress -e WORDPRESS_DB_NAME=wordpress02_db -p 889:80 wordpress
+docker run --name pma02 --network wordpress02 -p 8889:80 -e PMA_ARBITRARY=1 -d phpmyadmin/phpmyadmin
+
+แบบ 3 bindmount
+docker network create wordpress03
+แบบ 3 bindmount
+docker network create wordpress03
+docker run -d --name mysql03 --network wordpress03 -v /Users/patcharadnai/Desktop/docker101/mysql:/var/lib/mysql -e MYSQL_ROOT_PASSWORD=1111 -e MYSQL_DATABASE=wordpress03_db -e MYSQL_USER=wordpress -e MYSQL_PASSWORD=wordpress  mysql:8.0
+docker run -d --name wordpress03 --network wordpress03 -v /Users/patcharadnai/Desktop/docker101/wp:/var/www/html -e WORDPRESS_DB_HOST=mysql03 -e WORDPRESS_DB_USER=wordpress -e WORDPRESS_DB_PASSWORD=wordpress -e WORDPRESS_DB_NAME=wordpress03_db -p 890:80 wordpress
+docker run --name pma03 --network wordpress03 -p 8890:80 -e PMA_ARBITRARY=1 -d phpmyadmin/phpmyadmin
